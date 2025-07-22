@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>タイポの達人</title>
+  <style>
+    body {
+      background: linear-gradient(180deg, #ffb347 0%, #ffcc80 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+      overflow-x: hidden;
+    }
+    .main-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: repeating-radial-gradient(circle at 20% 20%, #ffb347 0 40px, #ffcc80 60px 120px);
+      opacity: 0.5;
+    }
+    .container {
+      position: relative;
+      width: 960px;
+      margin: 0 auto;
+      z-index: 1;
+    }
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-top: 32px;
+      margin-bottom: 8px;
+    }
+    .taiko-icon {
+      width: 100px;
+      height: 100px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .title-area {
+      display: flex;
+      align-items: center;
+    }
+    .game-title {
+      font-size: 40px;
+      font-family: 'Arial Black', 'Meiryo', sans-serif;
+      color: #e07a1c;
+      letter-spacing: 4px;
+      text-shadow: 0 2px 8px #fffbe7, 0 0 2px #b85c00;
+      margin-left: 8px;
+    }
+    .score-area {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-left: auto;
+    }
+    #score-bar-bg {
+      position: relative;
+      width: 320px;
+      height: 28px;
+      background: #e07a1c;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #c96a0a44;
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+    #score-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ffec8b 0%, #ff9800 100%);
+      border-radius: 12px 0 0 12px;
+      transition: width 0.3s cubic-bezier(.4,2,.6,1);
+      z-index: 1;
+    }
+    #score {
+      font-size: 32px;
+      font-weight: bold;
+      color: #fffbe7;
+      text-shadow: 0 2px 4px #b85c00;
+      background: #2228;
+      border-radius: 8px;
+      padding: 2px 18px;
+      margin-top: 2px;
+      margin-right: 2px;
+      letter-spacing: 2px;
+    }
+    .game-area {
+      background: #222;
+      border-radius: 18px;
+      border: 4px solid #e07a1c;
+      box-shadow: 0 4px 16px #e07a1c33;
+      margin-top: 12px;
+      padding: 0;
+      position: relative;
+      width: 960px;
+      height: 220px;
+      overflow: hidden;
+      z-index: 2;
+    }
+    #lane {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+    .note {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 64px;
+      color: #fffbe7;
+      text-shadow: 0 2px 8px #b85c00, 0 0 2px #fff;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+      transition: left 0.01s linear;
+      z-index: 3;
+    }
+    #judge-line {
+      position: absolute;
+      left: 220px;
+      width: 6px;
+      height: 100%;
+      background: #ffe066;
+      box-shadow: 0 0 8px #ffb300, 0 0 2px #fff;
+      z-index: 4;
+    }
+    #judge-result {
+      position: absolute;
+      right: 40px;
+      bottom: 24px;
+      font-size: 40px;
+      font-family: 'Arial Black', 'Meiryo', sans-serif;
+      text-shadow: 0 0 8px #222, 0 0 2px #ff0, 0 2px 8px #fff;
+      color: #ffe066;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 10;
+    }
+    /* --- 下部装飾 --- */
+    .bottom-bar {
+      position: relative;
+      width: 960px;
+      height: 80px;
+      margin: 0 auto;
+      margin-top: 0px;
+      background: linear-gradient(180deg, #ffb347 0%, #ffcc80 100%);
+      border-radius: 0 0 32px 32px;
+      border: 4px solid #e07a1c;
+      border-top: none;
+      box-shadow: 0 4px 16px #e07a1c33;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 2;
+      overflow: visible;
+    }
+    .bottom-face {
+      width: 80px;
+      height: 80px;
+      margin: -24px 0 0 0;
+      z-index: 3;
+    }
+    .bottom-flower {
+      position: absolute;
+      left: 120px;
+      right: 120px;
+      top: 18px;
+      height: 44px;
+      background: repeating-linear-gradient(90deg, #ffb347 0 20px, #ffcc80 20px 40px);
+      opacity: 0.3;
+      z-index: 1;
+      border-radius: 12px;
+    }
+    .start-btn {
+      margin-top: 24px;
+      padding: 10px 32px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #fffbe7;
+      background: linear-gradient(90deg, #ff9800 0%, #e07a1c 100%);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #b85c00;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: background 0.2s;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .start-btn:hover {
+      background: linear-gradient(90deg, #ffe066 0%, #ff9800 100%);
+      color: #e07a1c;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-bg"></div>
+  <div class="container">
+    <div class="header">
+      <div class="title-area">
+        <svg class="taiko-icon" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="48" fill="#fffbe7" stroke="#e07a1c" stroke-width="6"/>
+          <ellipse cx="50" cy="50" rx="38" ry="38" fill="#ffb347" stroke="#e07a1c" stroke-width="4"/>
+          <ellipse cx="50" cy="50" rx="30" ry="30" fill="#fff" stroke="#e07a1c" stroke-width="2"/>
+          <circle cx="35" cy="45" r="6" fill="#222"/>
+          <circle cx="65" cy="45" r="6" fill="#222"/>
+          <ellipse cx="50" cy="65" rx="16" ry="8" fill="#e07a1c"/>
+          <ellipse cx="50" cy="65" rx="8" ry="4" fill="#fff"/>
+        </svg>
+        <div class="game-title">タイプ</div>
+      </div>
+      <div class="score-area">
+        <div id="score-bar-bg">
+          <div id="score-bar"></div>
+        </div>
+        <div id="score">0</div>
+      </div>
+    </div>
+    <div class="game-area">
+      <div id="lane"></div>
+      <div id="judge-line"></div>
+      <div id="judge-result"></div>
+    </div>
+    <div class="bottom-bar">
+      <svg class="bottom-face" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="48" fill="#fffbe7" stroke="#e07a1c" stroke-width="6"/>
+        <ellipse cx="50" cy="50" rx="38" ry="38" fill="#ffb347" stroke="#e07a1c" stroke-width="4"/>
+        <ellipse cx="50" cy="50" rx="30" ry="30" fill="#fff" stroke="#e07a1c" stroke-width="2"/>
+        <circle cx="35" cy="55" r="8" fill="#222"/>
+        <circle cx="65" cy="55" r="8" fill="#222"/>
+        <ellipse cx="50" cy="75" rx="18" ry="10" fill="#e07a1c"/>
+        <ellipse cx="50" cy="75" rx="10" ry="5" fill="#fff"/>
+      </svg>
+      <div class="bottom-flower"></div>
+      <svg class="bottom-face" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="48" fill="#fffbe7" stroke="#e07a1c" stroke-width="6"/>
+        <ellipse cx="50" cy="50" rx="38" ry="38" fill="#ffb347" stroke="#e07a1c" stroke-width="4"/>
+        <ellipse cx="50" cy="50" rx="30" ry="30" fill="#fff" stroke="#e07a1c" stroke-width="2"/>
+        <circle cx="35" cy="55" r="8" fill="#222"/>
+        <circle cx="65" cy="55" r="8" fill="#222"/>
+        <ellipse cx="50" cy="75" rx="18" ry="10" fill="#e07a1c"/>
+        <ellipse cx="50" cy="75" rx="10" ry="5" fill="#fff"/>
+      </svg>
+    </div>
+    <button class="start-btn" id="start-button">Start</button>
+  </div>
+  <script>
+    // 設定
+    const gameWidth = 960;
+    const speed = 0.3; // px/ms
+    const perfectThreshold = 100; // ms
+    const goodThreshold = 200;    // ms
+    const interval = 500;         // msごとに一文字登場
+    const maxScore = 10000;
+
+    // 文章パターン
+    const phrases = [
+      {
+        jp: ['風','が','詩','を','さ','さ','や','く'],
+      },
+      {
+        jp: ['ね','む','り','の','な','か','で','ほ','し','を','つ','か','ん','だ'],
+      },
+      {
+        jp: ['は','る','の','か','ぜ','が','ぼ','く','の','こ','こ','ろ','を','ふ','か','く'],
+      }
+    ];
+
+    let notes = [];
+    let startTime = null;
+    let animationId;
+    let score = 0;
+    const lane = document.getElementById('lane');
+    const scoreBar = document.getElementById('score-bar');
+    const scoreEl = document.getElementById('score');
+    const judgeResult = document.getElementById('judge-result');
+    let judgeTimeout = null;
+    const audio = new Audio('maou_bgm_ethnic09.mp3');
+    audio.loop = true;
+    audio.volume = 0.6; // BGMを3倍に
+
+    function initGame() {
+      // ランダムにフレーズを選択
+      const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+      notes = phrase.jp.map((char, i) => ({ char, time: i * interval, hit: false }));
+      spawnNotes();
+    }
+
+    function spawnNotes() {
+      lane.innerHTML = '';
+      notes.forEach(note => {
+        const div = document.createElement('div');
+        div.className = 'note';
+        div.textContent = note.char;
+        div.dataset.time = note.time;
+        lane.appendChild(div);
+      });
+    }
+
+    function update(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      document.querySelectorAll('.note').forEach(div => {
+        const t = Number(div.dataset.time);
+        const left = gameWidth - (elapsed - t) * speed;
+        div.style.left = left + 'px';
+        if (left < -50) div.remove();
+      });
+      animationId = requestAnimationFrame(update);
+    }
+
+    function startGame() {
+      cancelAnimationFrame(animationId);
+      score = 0;
+      scoreEl.textContent = '0';
+      scoreBar.style.width = '0%';
+      startTime = null;
+      initGame();
+      audio.play();
+      animationId = requestAnimationFrame(update);
+    }
+
+    async function playVoiceVox(text) {
+      const speaker = 1;
+      // 1. audio_query
+      const queryRes = await fetch(`http://localhost:50021/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`, { method: 'POST' });
+      const query = await queryRes.json();
+      // 2. synthesis
+      const synthRes = await fetch(`http://localhost:50021/synthesis?speaker=${speaker}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(query)
+      });
+      const arrayBuffer = await synthRes.arrayBuffer();
+      // AudioContextで再生
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      // 音量調整（5.4倍）
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 5.4;
+      source.connect(gainNode).connect(audioContext.destination);
+      source.start(0);
+    }
+
+    document.addEventListener('keydown', async e => {
+      if (e.code !== 'Space') return;
+      if (!startTime) return;
+      const elapsed = performance.now() - startTime;
+      let closest = null;
+      let minDiff = Infinity;
+      notes.forEach(note => {
+        if (note.hit) return;
+        const diff = Math.abs(elapsed - note.time);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = note;
+        }
+      });
+      let result = '';
+      let color = '';
+      let addScore = 0;
+      if (closest && minDiff <= goodThreshold) {
+        if (minDiff <= perfectThreshold) {
+          result = 'Perfect';
+          color = '#ffe066';
+          addScore = 300;
+        } else {
+          result = 'Good';
+          color = '#ffb300';
+          addScore = 100;
+        }
+        closest.hit = true;
+        document.querySelectorAll('.note').forEach(div => {
+          if (Number(div.dataset.time) === closest.time) div.remove();
+        });
+        // Voicevoxで文字を読み上げ
+        playVoiceVox(closest.char);
+      } else {
+        result = 'Miss';
+        color = '#ff3c3c';
+        addScore = 0;
+      }
+      score += addScore;
+      scoreEl.textContent = score;
+      const pct = Math.min(score / maxScore, 1) * 100;
+      scoreBar.style.width = `${pct}%`;
+      judgeResult.textContent = result;
+      judgeResult.style.color = color;
+      judgeResult.style.opacity = 1;
+      if (judgeTimeout) clearTimeout(judgeTimeout);
+      judgeTimeout = setTimeout(() => {
+        judgeResult.style.opacity = 0;
+      }, 1000);
+    });
+
+    document.getElementById('start-button').addEventListener('click', startGame);
+  </script>
+</body>
+</html> 
