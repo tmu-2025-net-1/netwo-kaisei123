@@ -5,7 +5,7 @@
   <title>タイポの達人</title>
   <style>
     body {
-      background: linear-gradient(180deg, #ffb347 0%, #ffcc80 100%);
+      background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
       min-height: 100vh;
       margin: 0;
       font-family: 'Noto Serif JP', 'Yu Mincho', serif;
@@ -15,8 +15,11 @@
       position: absolute;
       inset: 0;
       z-index: 0;
-      background: repeating-radial-gradient(circle at 20% 20%, #ffb347 0 40px, #ffcc80 60px 120px);
-      opacity: 0.5;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(34, 139, 34, 0.1) 0 100px, transparent 100px),
+        radial-gradient(circle at 80% 70%, rgba(34, 139, 34, 0.05) 0 150px, transparent 150px),
+        repeating-linear-gradient(45deg, transparent 0 20px, rgba(34, 139, 34, 0.02) 20px 40px);
+      opacity: 0.8;
     }
     .container {
       position: relative;
@@ -43,56 +46,194 @@
     }
     .game-title {
       font-size: 40px;
-      font-family: 'Arial Black', 'Meiryo', sans-serif;
-      color: #e07a1c;
-      letter-spacing: 4px;
-      text-shadow: 0 2px 8px #fffbe7, 0 0 2px #b85c00;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+      color: #2c3e50;
+      letter-spacing: 6px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-left: 8px;
+      font-weight: 300;
     }
-    .score-area {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      margin-left: auto;
+    
+    /* OP画面のスタイル */
+    .op-screen {
+      background: rgba(0, 0, 0, 1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: none; /* 初期状態では非表示 */
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
     }
-    #score-bar-bg {
+    .op-screen.show {
+      opacity: 1;
+    }
+    .op-video {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+    
+    /* 曲選択画面のスタイル */
+    .song-selection {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 0;
+      border: 1px solid #dee2e6;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      margin-top: 12px;
+      padding: 40px;
       position: relative;
-      width: 320px;
-      height: 28px;
-      background: #e07a1c;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px #c96a0a44;
-      margin-bottom: 6px;
+      width: 880px;
+      min-height: 400px;
+      overflow: hidden;
+      z-index: 2;
+    }
+    .song-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .song-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid #dee2e6;
+      border-radius: 0;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
       overflow: hidden;
     }
-    #score-bar {
+    .song-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(34, 139, 34, 0.2);
+      border-color: #228b22;
+    }
+    .song-card.selected {
+      background: linear-gradient(135deg, #228b22 0%, #32cd32 100%);
+      border-color: #228b22;
+      color: white;
+      box-shadow: 0 0 20px rgba(34, 139, 34, 0.3);
+    }
+    .song-card::before {
+      content: '';
       position: absolute;
-      left: 0;
       top: 0;
+      left: -100%;
+      width: 100%;
       height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #ffec8b 0%, #ff9800 100%);
-      border-radius: 12px 0 0 12px;
-      transition: width 0.3s cubic-bezier(.4,2,.6,1);
-      z-index: 1;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
     }
-    #score {
-      font-size: 32px;
-      font-weight: bold;
-      color: #fffbe7;
-      text-shadow: 0 2px 4px #b85c00;
-      background: #2228;
-      border-radius: 8px;
-      padding: 2px 18px;
-      margin-top: 2px;
-      margin-right: 2px;
-      letter-spacing: 2px;
+    .song-card:hover::before {
+      left: 100%;
     }
+    .song-title {
+      font-size: 18px;
+      font-weight: 400;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    }
+    .song-artist {
+      font-size: 14px;
+      color: #6c757d;
+      margin-bottom: 12px;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    }
+    .song-difficulty {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+    .difficulty-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #dee2e6;
+    }
+    .difficulty-dot.active {
+      background: #228b22;
+    }
+    
+    /* 難易度選択画面のスタイル */
+    .difficulty-selection {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 0;
+      border: 1px solid #dee2e6;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      margin-top: 12px;
+      padding: 40px;
+      position: relative;
+      width: 880px;
+      min-height: 400px;
+      overflow: hidden;
+      z-index: 2;
+      display: none;
+    }
+    .difficulty-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-top: 40px;
+    }
+    .difficulty-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid #dee2e6;
+      border-radius: 0;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .difficulty-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(34, 139, 34, 0.2);
+      border-color: #228b22;
+    }
+    .difficulty-card.selected {
+      background: linear-gradient(135deg, #228b22 0%, #32cd32 100%);
+      border-color: #228b22;
+      color: white;
+      box-shadow: 0 0 30px rgba(34, 139, 34, 0.3);
+    }
+    .difficulty-title {
+      font-size: 24px;
+      font-weight: 400;
+      color: #2c3e50;
+      margin-bottom: 12px;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    }
+    .difficulty-desc {
+      font-size: 14px;
+      color: #6c757d;
+      margin-bottom: 16px;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    }
+    .difficulty-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+    .difficulty-dot-large {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #228b22;
+    }
+    
+    /* ゲーム画面のスタイル（既存） */
     .game-area {
-      background: #222;
-      border-radius: 18px;
-      border: 4px solid #e07a1c;
-      box-shadow: 0 4px 16px #e07a1c33;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 0;
+      border: 1px solid #dee2e6;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       margin-top: 12px;
       padding: 0;
       position: relative;
@@ -100,6 +241,7 @@
       height: 220px;
       overflow: hidden;
       z-index: 2;
+      display: none;
     }
     #lane {
       position: absolute;
@@ -114,45 +256,113 @@
       top: 50%;
       transform: translateY(-50%);
       font-size: 64px;
-      color: #fffbe7;
-      text-shadow: 0 2px 8px #b85c00, 0 0 2px #fff;
+      color: #2c3e50;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       font-family: 'Noto Serif JP', 'Yu Mincho', serif;
       transition: left 0.01s linear;
       z-index: 3;
+      font-weight: 300;
     }
     #judge-line {
       position: absolute;
       left: 220px;
-      width: 6px;
+      width: 2px;
       height: 100%;
-      background: #ffe066;
-      box-shadow: 0 0 8px #ffb300, 0 0 2px #fff;
+      background: #228b22;
+      box-shadow: 0 0 4px rgba(34, 139, 34, 0.3);
       z-index: 4;
+    }
+    .judge-area {
+      position: absolute;
+      left: 120px;
+      width: 200px;
+      height: 100%;
+      background: linear-gradient(90deg, transparent 0%, rgba(34, 139, 34, 0.05) 50%, transparent 100%);
+      z-index: 3;
     }
     #judge-result {
       position: absolute;
       right: 40px;
       bottom: 24px;
       font-size: 40px;
-      font-family: 'Arial Black', 'Meiryo', sans-serif;
-      text-shadow: 0 0 8px #222, 0 0 2px #ff0, 0 2px 8px #fff;
-      color: #ffe066;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      color: #228b22;
       opacity: 0;
       transition: opacity 0.2s;
       z-index: 10;
+      font-weight: 400;
     }
-    /* --- 下部装飾 --- */
+    #input-display {
+      position: absolute;
+      left: 40px;
+      bottom: 24px;
+      font-size: 24px;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+      color: #2c3e50;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #dee2e6;
+      border-radius: 0;
+      padding: 4px 12px;
+      z-index: 10;
+      font-weight: 300;
+    }
+    
+    /* スコアエリア */
+    .score-area {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-left: auto;
+    }
+    #score-bar-bg {
+      position: relative;
+      width: 320px;
+      height: 28px;
+      background: #dee2e6;
+      border-radius: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+    #score-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #228b22 0%, #32cd32 100%);
+      border-radius: 0;
+      transition: width 0.3s cubic-bezier(.4,2,.6,1);
+      z-index: 1;
+    }
+    #score {
+      font-size: 32px;
+      font-weight: 400;
+      color: #2c3e50;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #dee2e6;
+      border-radius: 0;
+      padding: 2px 18px;
+      margin-top: 2px;
+      margin-right: 2px;
+      letter-spacing: 2px;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    }
+    
+    /* 下部装飾 */
     .bottom-bar {
       position: relative;
       width: 960px;
       height: 80px;
       margin: 0 auto;
       margin-top: 0px;
-      background: linear-gradient(180deg, #ffb347 0%, #ffcc80 100%);
-      border-radius: 0 0 32px 32px;
-      border: 4px solid #e07a1c;
+      background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 0;
+      border: 1px solid #dee2e6;
       border-top: none;
-      box-shadow: 0 4px 16px #e07a1c33;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -171,35 +381,159 @@
       right: 120px;
       top: 18px;
       height: 44px;
-      background: repeating-linear-gradient(90deg, #ffb347 0 20px, #ffcc80 20px 40px);
-      opacity: 0.3;
+      background: repeating-linear-gradient(90deg, rgba(34, 139, 34, 0.1) 0 20px, rgba(34, 139, 34, 0.05) 20px 40px);
+      opacity: 0.5;
       z-index: 1;
-      border-radius: 12px;
+      border-radius: 0;
     }
     .start-btn {
       margin-top: 24px;
       padding: 10px 32px;
       font-size: 22px;
-      font-weight: bold;
-      color: #fffbe7;
-      background: linear-gradient(90deg, #ff9800 0%, #e07a1c 100%);
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px #b85c00;
+      font-weight: 400;
+      color: #2c3e50;
+      background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid #dee2e6;
+      border-radius: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       cursor: pointer;
       letter-spacing: 2px;
-      transition: background 0.2s;
+      transition: all 0.2s;
       display: block;
       margin-left: auto;
       margin-right: auto;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
     }
     .start-btn:hover {
-      background: linear-gradient(90deg, #ffe066 0%, #ff9800 100%);
-      color: #e07a1c;
+      background: linear-gradient(90deg, #228b22 0%, #32cd32 100%);
+      color: white;
+      border-color: #228b22;
+    }
+    
+    /* ナビゲーションボタン */
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .nav-btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 400;
+      color: #2c3e50;
+      background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid #dee2e6;
+      border-radius: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    }
+    .nav-btn:hover {
+      background: linear-gradient(90deg, #228b22 0%, #32cd32 100%);
+      color: white;
+      border-color: #228b22;
+      transform: translateY(-2px);
+    }
+    .nav-btn.back {
+      background: linear-gradient(90deg, #6c757d 0%, #495057 100%);
+    }
+    .nav-btn.back:hover {
+      background: linear-gradient(90deg, #495057 0%, #343a40 100%);
+      color: white;
+    }
+    
+    /* ゲームコントロールボタン */
+    .game-controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 20;
+    }
+    .control-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #2c3e50;
+      background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid #dee2e6;
+      border-radius: 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    }
+    .control-btn:hover {
+      background: linear-gradient(90deg, #228b22 0%, #32cd32 100%);
+      color: white;
+      border-color: #228b22;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(34, 139, 34, 0.3);
+    }
+    .control-btn:active {
+      transform: translateY(0);
+    }
+    
+    /* Perfect文字エフェクト */
+    .perfect-text {
+      position: fixed;
+      font-family: 'Arial Black', 'Impact', 'Meiryo', sans-serif;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+      pointer-events: none;
+      z-index: 1000;
+      animation: perfectFloat 2s ease-out forwards;
+    }
+    
+    @keyframes perfectFloat {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        opacity: 0.9;
+        transform: translateY(-20px) scale(1.2);
+      }
+      100% {
+        opacity: 0.8;
+        transform: translateY(-30px) scale(1.1) rotate(360deg);
+      }
+    }
+    
+    @keyframes perfectMove {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      20% {
+        transform: translate(200px, 150px) rotate(45deg);
+      }
+      40% {
+        transform: translate(400px, 300px) rotate(90deg);
+      }
+      60% {
+        transform: translate(600px, 200px) rotate(135deg);
+      }
+      80% {
+        transform: translate(800px, 400px) rotate(180deg);
+      }
+      100% {
+        transform: translate(1000px, 100px) rotate(225deg);
+      }
     }
   </style>
 </head>
 <body>
+  <!-- OP画面 -->
+  <div class="op-screen" id="op-screen">
+    <video class="op-video" id="op-video" preload="auto" autoplay>
+      <source src="タイポの達人-2.mp4" type="video/mp4">
+    </video>
+  </div>
+  
   <div class="main-bg"></div>
   <div class="container">
     <div class="header">
@@ -214,6 +548,7 @@
           <ellipse cx="50" cy="65" rx="8" ry="4" fill="#fff"/>
         </svg>
         <div class="game-title">タイプ</div>
+        <div style="font-size: 14px; color: #e07a1c; margin-top: 4px;">スペースキーでリズムに合わせよう！</div>
       </div>
       <div class="score-area">
         <div id="score-bar-bg">
@@ -222,11 +557,89 @@
         <div id="score">0</div>
       </div>
     </div>
-    <div class="game-area">
+    
+    <!-- 曲選択画面 -->
+    <div class="song-selection" id="song-selection">
+      <h2 style="text-align: center; color: #fffbe7; font-size: 28px; margin-bottom: 30px;">曲を選択してください</h2>
+      <div class="song-grid">
+        <div class="song-card" data-song="song1">
+          <div class="song-title">風の詩</div>
+          <div class="song-artist">自然の調べ</div>
+          <div class="song-difficulty">
+            <div class="difficulty-dot active"></div>
+            <div class="difficulty-dot active"></div>
+            <div class="difficulty-dot"></div>
+          </div>
+        </div>
+        <div class="song-card" data-song="song2">
+          <div class="song-title">星の夢</div>
+          <div class="song-artist">夜空の物語</div>
+          <div class="song-difficulty">
+            <div class="difficulty-dot active"></div>
+            <div class="difficulty-dot active"></div>
+            <div class="difficulty-dot active"></div>
+          </div>
+        </div>
+        <div class="song-card" data-song="song3">
+          <div class="song-title">春の風</div>
+          <div class="song-artist">季節の歌</div>
+          <div class="song-difficulty">
+            <div class="difficulty-dot active"></div>
+            <div class="difficulty-dot active"></div>
+            <div class="difficulty-dot active"></div>
+            <div class="difficulty-dot active"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 難易度選択画面 -->
+    <div class="difficulty-selection" id="difficulty-selection">
+      <h2 style="text-align: center; color: #fffbe7; font-size: 28px; margin-bottom: 30px;">難易度を選択してください</h2>
+      <div class="difficulty-grid">
+        <div class="difficulty-card" data-difficulty="easy">
+          <div class="difficulty-title">EASY</div>
+          <div class="difficulty-desc">初心者向け</div>
+          <div class="difficulty-dots">
+            <div class="difficulty-dot-large"></div>
+          </div>
+        </div>
+        <div class="difficulty-card" data-difficulty="normal">
+          <div class="difficulty-title">NORMAL</div>
+          <div class="difficulty-desc">標準レベル</div>
+          <div class="difficulty-dots">
+            <div class="difficulty-dot-large"></div>
+            <div class="difficulty-dot-large"></div>
+          </div>
+        </div>
+        <div class="difficulty-card" data-difficulty="hard">
+          <div class="difficulty-title">HARD</div>
+          <div class="difficulty-desc">上級者向け</div>
+          <div class="difficulty-dots">
+            <div class="difficulty-dot-large"></div>
+            <div class="difficulty-dot-large"></div>
+            <div class="difficulty-dot-large"></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="nav-btn back" id="back-to-songs">← 曲選択に戻る</button>
+      </div>
+    </div>
+    
+    <!-- ゲーム画面 -->
+    <div class="game-area" id="game-area">
+      <div class="game-controls">
+        <button class="control-btn" id="pause-button">⏸ PAUSE</button>
+        <button class="control-btn" id="resume-button" style="display: none;">▶ RESUME</button>
+      </div>
       <div id="lane"></div>
+      <div class="judge-area"></div>
       <div id="judge-line"></div>
       <div id="judge-result"></div>
+      <div id="input-display">スペースキーでタイミングを合わせよう！</div>
     </div>
+    
     <div class="bottom-bar">
       <svg class="bottom-face" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="48" fill="#fffbe7" stroke="#e07a1c" stroke-width="6"/>
@@ -253,13 +666,13 @@
   <script>
     // 設定
     const gameWidth = 960;
-    const speed = 0.3; // px/ms
-    const perfectThreshold = 100; // ms
-    const goodThreshold = 200;    // ms
-    const interval = 500;         // msごとに一文字登場
+    let speed = 0.3; // px/ms (デフォルトはEASY)
+    let perfectThreshold = 300; // ms
+    let goodThreshold = 600;    // ms
+    let interval = 500;         // msごとに一文字登場 (デフォルトはEASY)
     const maxScore = 10000;
 
-    // 文章パターン
+    // 文章パターン（大幅に拡充）
     const phrases = [
       {
         jp: ['風','が','詩','を','さ','さ','や','く'],
@@ -269,6 +682,60 @@
       },
       {
         jp: ['は','る','の','か','ぜ','が','ぼ','く','の','こ','こ','ろ','を','ふ','か','く'],
+      },
+      {
+        jp: ['さ','く','ら','の','は','な','び','ら','が','お','ち','て','く','る'],
+      },
+      {
+        jp: ['ゆ','き','の','な','か','で','あ','そ','ん','だ','あ','の','ひ'],
+      },
+      {
+        jp: ['な','つ','の','ひ','ざ','し','が','あ','つ','い','け','れ','ど'],
+      },
+      {
+        jp: ['あ','き','の','も','み','じ','が','き','れ','い','だ','ね'],
+      },
+      {
+        jp: ['ほ','し','ぞ','ら','を','み','あ','げ','て','ゆ','め','を','み','た'],
+      },
+      {
+        jp: ['う','み','の','な','か','で','およ','い','だ','あ','の','ひ'],
+      },
+      {
+        jp: ['や','ま','の','み','ち','を','の','ぼ','っ','て','い','く'],
+      },
+      {
+        jp: ['か','ぜ','の','な','か','で','う','た','を','う','た','っ','た'],
+      },
+      {
+        jp: ['あ','め','の','な','か','で','あ','そ','ん','だ','あ','の','ひ'],
+      },
+      {
+        jp: ['ひ','か','り','の','な','か','で','ま','っ','て','い','た'],
+      },
+      {
+        jp: ['く','も','り','の','な','か','で','か','ん','が','え','た'],
+      },
+      {
+        jp: ['き','れ','い','な','は','な','が','さ','い','て','い','た'],
+      },
+      {
+        jp: ['た','か','い','や','ま','に','の','ぼ','っ','て','い','く'],
+      },
+      {
+        jp: ['ひ','ろ','い','う','み','を','み','て','い','た'],
+      },
+      {
+        jp: ['き','れ','い','な','そ','ら','を','み','あ','げ','て','い','た'],
+      },
+      {
+        jp: ['あ','た','た','か','い','か','ぜ','が','ふ','い','て','い','た'],
+      },
+      {
+        jp: ['す','ず','し','い','か','ぜ','が','ふ','い','て','い','た'],
+      },
+      {
+        jp: ['あ','ま','い','か','お','り','が','し','て','い','た'],
       }
     ];
 
@@ -276,19 +743,177 @@
     let startTime = null;
     let animationId;
     let score = 0;
+    let selectedSong = null;
+    let selectedDifficulty = null;
+    let isPaused = false;
+    let pauseStartTime = null;
+    
     const lane = document.getElementById('lane');
     const scoreBar = document.getElementById('score-bar');
     const scoreEl = document.getElementById('score');
     const judgeResult = document.getElementById('judge-result');
+    const inputDisplay = document.getElementById('input-display');
+    const songSelection = document.getElementById('song-selection');
+    const difficultySelection = document.getElementById('difficulty-selection');
+    const gameArea = document.getElementById('game-area');
+    const startButton = document.getElementById('start-button');
+    const pauseButton = document.getElementById('pause-button');
+    const resumeButton = document.getElementById('resume-button');
+    
+    // デバッグ用：要素の取得確認
+    console.log('Score elements found:', {
+      scoreBar: scoreBar,
+      scoreEl: scoreEl,
+      judgeResult: judgeResult,
+      inputDisplay: inputDisplay
+    });
     let judgeTimeout = null;
     const audio = new Audio('maou_bgm_ethnic09.mp3');
     audio.loop = true;
     audio.volume = 0.6; // BGMを3倍に
+    
+    // スタート音声
+    const startAudio = new Audio('yoroshiku_onegaishimasu.mp3');
+    startAudio.volume = 0.8;
+
+    // 画面管理
+    function showScreen(screenId) {
+      console.log('画面を切り替えます:', screenId);
+      songSelection.style.display = 'none';
+      difficultySelection.style.display = 'none';
+      gameArea.style.display = 'none';
+      
+      if (screenId === 'song-selection') {
+        songSelection.style.display = 'block';
+        console.log('曲選択画面を表示しました');
+      } else if (screenId === 'difficulty-selection') {
+        difficultySelection.style.display = 'block';
+        console.log('難易度選択画面を表示しました');
+      } else if (screenId === 'game-area') {
+        gameArea.style.display = 'block';
+        console.log('ゲーム画面を表示しました');
+      }
+    }
+
+    // 曲選択のイベントリスナー
+    document.querySelectorAll('.song-card').forEach(card => {
+      // ホバー効果音
+      card.addEventListener('mouseenter', function() {
+        playHoverSound();
+      });
+      
+      // クリック効果音
+      card.addEventListener('click', function() {
+        console.log('曲カードがクリックされました:', this.dataset.song);
+        playClickSound();
+        
+        // 他のカードの選択を解除
+        document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
+        
+        // このカードを選択
+        this.classList.add('selected');
+        selectedSong = this.dataset.song;
+        
+        // アニメーション効果
+        this.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 200);
+        
+        // 少し待ってから難易度選択画面に移動
+        setTimeout(() => {
+          showScreen('difficulty-selection');
+        }, 500);
+      });
+    });
+
+    // 難易度選択のイベントリスナー
+    document.querySelectorAll('.difficulty-card').forEach(card => {
+      // ホバー効果音
+      card.addEventListener('mouseenter', function() {
+        playHoverSound();
+      });
+      
+      // クリック効果音
+      card.addEventListener('click', function() {
+        playClickSound();
+        
+        // 他のカードの選択を解除
+        document.querySelectorAll('.difficulty-card').forEach(c => c.classList.remove('selected'));
+        
+        // このカードを選択
+        this.classList.add('selected');
+        selectedDifficulty = this.dataset.difficulty;
+        
+        // 難易度に応じて速度と判定閾値を設定
+        switch(selectedDifficulty) {
+          case 'easy':
+            speed = 0.3; // 現在の速さ
+            interval = 500;
+            perfectThreshold = 300;
+            goodThreshold = 600;
+            break;
+          case 'normal':
+            speed = 0.6; // 2倍速
+            interval = 250;
+            perfectThreshold = 200; // 少し厳しく
+            goodThreshold = 400;
+            break;
+          case 'hard':
+            speed = 1.2; // 4倍速
+            interval = 125;
+            perfectThreshold = 150; // さらに厳しく
+            goodThreshold = 300;
+            break;
+        }
+        
+        console.log(`Difficulty selected: ${selectedDifficulty}, Speed: ${speed}, Interval: ${interval}, Perfect: ${perfectThreshold}ms, Good: ${goodThreshold}ms`);
+        
+        // アニメーション効果
+        this.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 200);
+        
+        // 少し待ってからゲーム画面に移動
+        setTimeout(() => {
+          showScreen('game-area');
+          // ゲーム画面に遷移したタイミングでスタート音声を再生
+          startAudio.currentTime = 0;
+          startAudio.play();
+          // ゲームは自動開始せず、スタートボタンを待つ
+        }, 500);
+      });
+    });
+
+    // 戻るボタンのイベントリスナー
+    document.getElementById('back-to-songs').addEventListener('mouseenter', function() {
+      playHoverSound();
+    });
+    
+    document.getElementById('back-to-songs').addEventListener('click', function() {
+      playClickSound();
+      showScreen('song-selection');
+    });
 
     function initGame() {
-      // ランダムにフレーズを選択
-      const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-      notes = phrase.jp.map((char, i) => ({ char, time: i * interval, hit: false }));
+      // 半永久的に文章を生成するための設定
+      notes = [];
+      let currentTime = 0;
+      
+      // 複数のフレーズを連続して生成
+      for (let i = 0; i < 10; i++) { // 10個のフレーズを連続生成
+        const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+        const phraseNotes = phrase.jp.map((char, j) => ({ 
+          char, 
+          time: currentTime + j * interval, 
+          hit: false 
+        }));
+        notes = notes.concat(phraseNotes);
+        currentTime += phrase.jp.length * interval + 1000; // フレーズ間に1秒の間隔
+      }
+      
+      console.log('Generated notes:', notes.map(n => ({ char: n.char, time: n.time })));
       spawnNotes();
     }
 
@@ -306,24 +931,159 @@
     function update(timestamp) {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
+      
+      // 一時停止中は更新しない
+      if (isPaused) return;
+      
+      // 既存のノートを更新
       document.querySelectorAll('.note').forEach(div => {
         const t = Number(div.dataset.time);
         const left = gameWidth - (elapsed - t) * speed;
         div.style.left = left + 'px';
         if (left < -50) div.remove();
       });
+      
+      // 新しいフレーズを継続的に追加
+      const lastNoteTime = notes.length > 0 ? Math.max(...notes.map(n => n.time)) : 0;
+      if (elapsed > lastNoteTime - 5000) { // 5秒前に新しいフレーズを追加
+        addNewPhrase(lastNoteTime);
+      }
+      
       animationId = requestAnimationFrame(update);
+    }
+    
+    function addNewPhrase(startTime) {
+      const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+      const newNotes = phrase.jp.map((char, i) => ({ 
+        char, 
+        time: startTime + 1000 + i * interval, // 1秒間隔を空けて追加
+        hit: false 
+      }));
+      
+      notes = notes.concat(newNotes);
+      
+      // 新しいノートを画面に追加
+      newNotes.forEach(note => {
+        const div = document.createElement('div');
+        div.className = 'note';
+        div.textContent = note.char;
+        div.dataset.time = note.time;
+        lane.appendChild(div);
+      });
+      
+      console.log(`Added new phrase: ${phrase.jp.join('')}`);
     }
 
     function startGame() {
       cancelAnimationFrame(animationId);
       score = 0;
+      console.log('Game started, score reset to 0');
       scoreEl.textContent = '0';
       scoreBar.style.width = '0%';
+      inputDisplay.textContent = 'スペースキーでタイミングを合わせよう！';
       startTime = null;
       initGame();
+      
+      // BGMを開始
       audio.play();
+      
       animationId = requestAnimationFrame(update);
+      
+      // スタートボタンを非表示にする
+      startButton.style.display = 'none';
+    }
+
+    function pauseGame() {
+      if (!isPaused) {
+        // ゲームを一時停止
+        isPaused = true;
+        pauseStartTime = performance.now();
+        cancelAnimationFrame(animationId);
+        audio.pause();
+        inputDisplay.textContent = '一時停止中';
+        pauseButton.style.display = 'none';
+        resumeButton.style.display = 'inline-block';
+        console.log('Game paused');
+      }
+    }
+
+    function resumeGame() {
+      if (isPaused) {
+        // ゲームを再開
+        isPaused = false;
+        const pauseDuration = performance.now() - pauseStartTime;
+        startTime += pauseDuration; // 一時停止時間を補正
+        audio.play();
+        inputDisplay.textContent = 'スペースキーでタイミングを合わせよう！';
+        pauseButton.style.display = 'inline-block';
+        resumeButton.style.display = 'none';
+        animationId = requestAnimationFrame(update);
+        console.log('Game resumed');
+      }
+    }
+
+    function stopGame() {
+      cancelAnimationFrame(animationId);
+      audio.pause();
+      audio.currentTime = 0;
+      startTime = null;
+      inputDisplay.textContent = 'ゲーム停止中';
+      console.log('Game stopped');
+      
+      // Perfect文字エフェクトをクリア
+      const perfectTexts = document.querySelectorAll('.perfect-text');
+      perfectTexts.forEach(text => text.remove());
+      
+      // スタートボタンを再表示
+      startButton.style.display = 'block';
+      
+      // 少し待ってから曲選択画面に戻る
+      setTimeout(() => {
+        showScreen('song-selection');
+        // 選択状態をリセット
+        document.querySelectorAll('.song-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.difficulty-card').forEach(c => c.classList.remove('selected'));
+        selectedSong = null;
+        selectedDifficulty = null;
+      }, 1000);
+    }
+
+    function createPerfectTextEffect(char) {
+      const container = document.querySelector('.container');
+      
+      // ランダムな位置（画面全体）
+      const x = Math.random() * (window.innerWidth - 200) + 100;
+      const y = Math.random() * (window.innerHeight - 200) + 100;
+      
+      // ランダムな文字サイズ（180px〜360px、平均1.5倍に変更）
+      const fontSize = Math.random() * 180 + 180;
+      
+      // ランダムな回転角度（-180度〜180度）
+      const rotation = Math.random() * 360 - 180;
+      
+      // 要素を作成
+      const textElement = document.createElement('div');
+      textElement.className = 'perfect-text';
+      textElement.textContent = char;
+      textElement.style.left = x + 'px';
+      textElement.style.top = y + 'px';
+      textElement.style.fontSize = fontSize + 'px';
+      textElement.style.color = '#ffffff'; // 白色
+      textElement.style.textShadow = '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000'; // 黒い縁取り
+      textElement.style.fontFamily = '"Arial Black", "Impact", "Meiryo", sans-serif'; // ごっついフォント
+      textElement.style.fontWeight = '900';
+      textElement.style.transform = `rotate(${rotation}deg)`;
+      
+      // bodyに追加（画面全体に表示）
+      document.body.appendChild(textElement);
+      
+      // 5秒後に物理的な反射運動を開始
+      setTimeout(() => {
+        startBouncingAnimation(textElement);
+        console.log(`Perfect text "${char}" started bouncing animation`);
+      }, 5000);
+      
+      console.log(`Perfect text effect created: "${char}" at (${x}, ${y}), size: ${fontSize}px, rotation: ${rotation}deg`);
     }
 
     async function playVoiceVox(text) {
@@ -351,31 +1111,71 @@
     }
 
     document.addEventListener('keydown', async e => {
+      if (!startTime || isPaused) return;
+      
+      // スペースキーのみ受け付ける
       if (e.code !== 'Space') return;
-      if (!startTime) return;
+      
       const elapsed = performance.now() - startTime;
       let closest = null;
       let minDiff = Infinity;
+      
+      // 最も近いタイミングのノートを探す
+      const availableNotes = notes.filter(n => !n.hit);
+      console.log(`Space pressed, Available notes:`, availableNotes.map(n => n.char));
+      console.log(`Elapsed time: ${elapsed}ms`);
+      
       notes.forEach(note => {
         if (note.hit) return;
         const diff = Math.abs(elapsed - note.time);
+        console.log(`Checking note: "${note.char}" at time ${note.time}, diff: ${diff}ms`);
         if (diff < minDiff) {
           minDiff = diff;
           closest = note;
         }
       });
+      
       let result = '';
       let color = '';
       let addScore = 0;
+      
       if (closest && minDiff <= goodThreshold) {
         if (minDiff <= perfectThreshold) {
           result = 'Perfect';
           color = '#ffe066';
-          addScore = 300;
+          // 難易度に応じてスコアを調整
+          switch(selectedDifficulty) {
+            case 'easy':
+              addScore = 300;
+              break;
+            case 'normal':
+              addScore = 400;
+              break;
+            case 'hard':
+              addScore = 500;
+              break;
+          }
+          
+          // Perfect文字エフェクトを追加
+          createPerfectTextEffect(closest.char);
+          
+          // Perfect音声を再生
+          playPerfectSound();
         } else {
           result = 'Good';
           color = '#ffb300';
-          addScore = 100;
+          // 難易度に応じてスコアを調整
+          switch(selectedDifficulty) {
+            case 'easy':
+              addScore = 100;
+              break;
+            case 'normal':
+              addScore = 150;
+              break;
+            case 'hard':
+              addScore = 200;
+              break;
+          }
         }
         closest.hit = true;
         document.querySelectorAll('.note').forEach(div => {
@@ -387,10 +1187,14 @@
         result = 'Miss';
         color = '#ff3c3c';
         addScore = 0;
+        console.log(`Miss: closest=${closest ? closest.char : 'none'}, minDiff=${minDiff}, goodThreshold=${goodThreshold}`);
       }
+      
       score += addScore;
+      console.log(`Score updated: ${score}, AddScore: ${addScore}, Result: ${result}, TimeDiff: ${minDiff}ms`);
       scoreEl.textContent = score;
       const pct = Math.min(score / maxScore, 1) * 100;
+      console.log(`Score bar width: ${pct}%`);
       scoreBar.style.width = `${pct}%`;
       judgeResult.textContent = result;
       judgeResult.style.color = color;
@@ -398,10 +1202,155 @@
       if (judgeTimeout) clearTimeout(judgeTimeout);
       judgeTimeout = setTimeout(() => {
         judgeResult.style.opacity = 0;
-      }, 1000);
+      }, 2000); // 1秒→2秒に延長
     });
 
-    document.getElementById('start-button').addEventListener('click', startGame);
+    // Perfect音声の配列（英語ファイル名）
+    const perfectAudios = [
+      'onsei/nidan_giri.mp3',
+      'onsei/kami_no_sabaki.mp3',
+      'onsei/shuue_seirei_no_chikara.mp3',
+      'onsei/shiden_issen.mp3',
+      'onsei/amai.mp3',
+      'onsei/kui_aratameyo.mp3',
+      'onsei/yoroshiku_onegaishimasu.mp3',
+      'onsei/namen_na_yo.mp3',
+      'onsei/taa.mp3',
+      'onsei/soko.mp3',
+      'onsei/ka_karada_ga_iu_koto.mp3',
+      'onsei/iya.mp3'
+    ];
+
+    // Perfect音声を再生する関数
+    function playPerfectSound() {
+      const randomIndex = Math.floor(Math.random() * perfectAudios.length);
+      const perfectAudio = new Audio(perfectAudios[randomIndex]);
+      perfectAudio.volume = 0.6;
+      perfectAudio.play();
+    }
+    
+    // ボタンホバー効果音を再生する関数
+    function playHoverSound() {
+      const hoverAudio = new Audio('koukaonn/taiko_kakka.mp3');
+      hoverAudio.volume = 0.4;
+      hoverAudio.play();
+    }
+    
+    // ボタンクリック効果音を再生する関数
+    function playClickSound() {
+      const clickAudio = new Audio('koukaonn/taiko_don.mp3');
+      clickAudio.volume = 0.6;
+      clickAudio.play();
+    }
+    
+    // 物理的な反射運動を実装する関数
+    function startBouncingAnimation(element) {
+      let x = parseFloat(element.style.left);
+      let y = parseFloat(element.style.top);
+      let vx = (Math.random() - 0.5) * 4; // ランダムなX方向の速度
+      let vy = (Math.random() - 0.5) * 4; // ランダムなY方向の速度
+      let rotation = 0;
+      
+      function animate() {
+        // 位置を更新
+        x += vx;
+        y += vy;
+        rotation += 2; // 回転
+        
+        // 壁との衝突判定
+        const elementWidth = element.offsetWidth;
+        const elementHeight = element.offsetHeight;
+        
+        // 左右の壁
+        if (x <= 0 || x >= window.innerWidth - elementWidth) {
+          vx = -vx; // X方向の速度を反転
+          x = Math.max(0, Math.min(window.innerWidth - elementWidth, x)); // 壁の外に出ないように調整
+        }
+        
+        // 上下の壁
+        if (y <= 0 || y >= window.innerHeight - elementHeight) {
+          vy = -vy; // Y方向の速度を反転
+          y = Math.max(0, Math.min(window.innerHeight - elementHeight, y)); // 壁の外に出ないように調整
+        }
+        
+        // 要素の位置と回転を更新
+        element.style.left = x + 'px';
+        element.style.top = y + 'px';
+        element.style.transform = `rotate(${rotation}deg)`;
+        
+        // 次のフレームでアニメーションを継続
+        requestAnimationFrame(animate);
+      }
+      
+      // アニメーション開始
+      animate();
+    }
+
+    // OP画面の制御
+    const opScreen = document.getElementById('op-screen');
+    const opVideo = document.getElementById('op-video');
+    
+    // OP画面を表示
+    function showOP() {
+      opScreen.style.display = 'flex';
+      opScreen.classList.add('show');
+      console.log('OP画面を表示しました');
+    }
+    
+    // OP画面を非表示にして曲選択画面に遷移
+    function hideOP() {
+      opScreen.classList.remove('show');
+      opScreen.style.display = 'none'; // 完全に非表示にする
+      console.log('OP画面を非表示にして曲選択画面に遷移します');
+      showScreen('song-selection');
+    }
+    
+    // 動画終了時の処理
+    opVideo.addEventListener('ended', function() {
+      console.log('動画が終了しました');
+      hideOP();
+    });
+    
+    // 動画読み込み完了時の処理
+    opVideo.addEventListener('loadeddata', function() {
+      console.log('動画の読み込みが完了しました');
+      showOP();
+    });
+    
+    // 動画エラー時の処理
+    opVideo.addEventListener('error', function() {
+      console.log('動画の読み込みエラーが発生しました');
+      hideOP();
+    });
+    
+    // ページ読み込み時の処理
+    window.addEventListener('load', function() {
+      console.log('ページが読み込まれました');
+      // 動画が既に読み込み済みの場合は表示
+      if (opVideo.readyState >= 2) {
+        showOP();
+      }
+      
+      // 5秒後に強制的に曲選択画面に遷移（フォールバック）
+      setTimeout(() => {
+        if (opScreen.classList.contains('show')) {
+          console.log('フォールバック: 5秒後に曲選択画面に遷移します');
+          hideOP();
+        }
+      }, 5000);
+    });
+    
+    // Startボタンはゲーム画面でのみ機能
+    startButton.addEventListener('click', function() {
+      if (gameArea.style.display === 'block') {
+        // ゲーム画面でのみスタート機能
+        startGame();
+      }
+    });
+    
+    // Pause/Resumeボタンのイベントリスナー
+    pauseButton.addEventListener('click', pauseGame);
+    resumeButton.addEventListener('click', resumeGame);
   </script>
 </body>
 </html> 
