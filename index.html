@@ -263,6 +263,38 @@
       z-index: 3;
       font-weight: 300;
     }
+    
+    /* 叩かれた文字のアニメーション効果 */
+    .hit-note {
+      position: absolute;
+      font-size: 64px;
+      color: #228b22;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+      font-weight: 300;
+      z-index: 5;
+      pointer-events: none;
+      animation: hitNoteFloat 1.5s ease-out forwards;
+    }
+    
+    @keyframes hitNoteFloat {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      20% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1.2);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateY(-40px) scale(1.1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0.8);
+      }
+    }
     #judge-line {
       position: absolute;
       left: 220px;
@@ -480,13 +512,103 @@
     /* Perfect文字エフェクト */
     .perfect-text {
       position: fixed;
-      font-family: 'Arial Black', 'Impact', 'Meiryo', sans-serif;
-      font-weight: 900;
+      font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+      font-weight: 400;
       color: #ffffff;
       text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
       pointer-events: none;
       z-index: 1000;
       animation: perfectFloat 2s ease-out forwards;
+    }
+    
+    /* パーティクルエフェクト */
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #ffd700;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1001;
+      animation: particleExplosion 1.5s ease-out forwards;
+    }
+    
+    .particle:nth-child(odd) {
+      background: #ff6b6b;
+    }
+    
+    .particle:nth-child(even) {
+      background: #4ecdc4;
+    }
+    
+    .particle:nth-child(3n) {
+      background: #45b7d1;
+    }
+    
+    .particle:nth-child(4n) {
+      background: #96ceb4;
+    }
+    
+    .particle:nth-child(5n) {
+      background: #feca57;
+    }
+    
+    /* Good用のパーティクルエフェクト（地味なバージョン） */
+    .particle-good {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #ffb300;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1001;
+      animation: particleGoodExplosion 1.2s ease-out forwards;
+    }
+    
+    .particle-good:nth-child(odd) {
+      background: #ff8a65;
+    }
+    
+    .particle-good:nth-child(even) {
+      background: #81c784;
+    }
+    
+    .particle-good:nth-child(3n) {
+      background: #64b5f6;
+    }
+    
+    .particle-good:nth-child(4n) {
+      background: #ba68c8;
+    }
+    
+    @keyframes particleExplosion {
+      0% {
+        opacity: 1;
+        transform: scale(1) translate(0, 0);
+      }
+      50% {
+        opacity: 0.8;
+        transform: scale(1.5) translate(var(--x), var(--y));
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.1) translate(calc(var(--x) * 2), calc(var(--y) * 2));
+      }
+    }
+    
+    @keyframes particleGoodExplosion {
+      0% {
+        opacity: 1;
+        transform: scale(1) translate(0, 0);
+      }
+      50% {
+        opacity: 0.7;
+        transform: scale(1.2) translate(var(--x), var(--y));
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.1) translate(calc(var(--x) * 1.5), calc(var(--y) * 1.5));
+      }
     }
     
     @keyframes perfectFloat {
@@ -1030,9 +1152,12 @@
       inputDisplay.textContent = 'ゲーム停止中';
       console.log('Game stopped');
       
-      // Perfect文字エフェクトをクリア
+      // Perfect文字エフェクトとパーティクルエフェクトをクリア
       const perfectTexts = document.querySelectorAll('.perfect-text');
       perfectTexts.forEach(text => text.remove());
+      
+      const particles = document.querySelectorAll('.particle, .particle-good');
+      particles.forEach(particle => particle.remove());
       
       // スタートボタンを再表示
       startButton.style.display = 'block';
@@ -1070,12 +1195,15 @@
       textElement.style.fontSize = fontSize + 'px';
       textElement.style.color = '#ffffff'; // 白色
       textElement.style.textShadow = '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000'; // 黒い縁取り
-      textElement.style.fontFamily = '"Arial Black", "Impact", "Meiryo", sans-serif'; // ごっついフォント
-      textElement.style.fontWeight = '900';
+      textElement.style.fontFamily = '"Noto Serif JP", "Yu Mincho", serif'; // 明朝体
+      textElement.style.fontWeight = '400';
       textElement.style.transform = `rotate(${rotation}deg)`;
       
       // bodyに追加（画面全体に表示）
       document.body.appendChild(textElement);
+      
+      // パーティクルエフェクトを生成
+      createParticleEffect(x + fontSize/2, y + fontSize/2);
       
       // 5秒後に物理的な反射運動を開始
       setTimeout(() => {
@@ -1084,6 +1212,76 @@
       }, 5000);
       
       console.log(`Perfect text effect created: "${char}" at (${x}, ${y}), size: ${fontSize}px, rotation: ${rotation}deg`);
+    }
+
+    function createParticleEffect(centerX, centerY) {
+      const particleCount = 24; // パーティクルの数
+      const radius = 60; // 初期半径
+      
+      for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * 2 * Math.PI;
+        const distance = radius + Math.random() * 40; // ランダムな距離
+        
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        // パーティクルの初期位置を設定
+        particle.style.left = centerX + 'px';
+        particle.style.top = centerY + 'px';
+        
+        // CSS変数でアニメーション方向を設定
+        const x = Math.cos(angle) * distance;
+        const y = Math.sin(angle) * distance;
+        particle.style.setProperty('--x', x + 'px');
+        particle.style.setProperty('--y', y + 'px');
+        
+        // bodyに追加
+        document.body.appendChild(particle);
+        
+        // アニメーション終了後に要素を削除
+        setTimeout(() => {
+          if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+          }
+        }, 1500);
+      }
+      
+      console.log(`Particle effect created at (${centerX}, ${centerY}) with ${particleCount} particles`);
+    }
+
+    function createGoodParticleEffect(centerX, centerY) {
+      const particleCount = 12; // Good用は少なめのパーティクル数
+      const radius = 40; // Good用は小さめの半径
+      
+      for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * 2 * Math.PI;
+        const distance = radius + Math.random() * 20; // ランダムな距離（小さめ）
+        
+        const particle = document.createElement('div');
+        particle.className = 'particle-good';
+        
+        // パーティクルの初期位置を設定
+        particle.style.left = centerX + 'px';
+        particle.style.top = centerY + 'px';
+        
+        // CSS変数でアニメーション方向を設定
+        const x = Math.cos(angle) * distance;
+        const y = Math.sin(angle) * distance;
+        particle.style.setProperty('--x', x + 'px');
+        particle.style.setProperty('--y', y + 'px');
+        
+        // bodyに追加
+        document.body.appendChild(particle);
+        
+        // アニメーション終了後に要素を削除
+        setTimeout(() => {
+          if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+          }
+        }, 1200);
+      }
+      
+      console.log(`Good particle effect created at (${centerX}, ${centerY}) with ${particleCount} particles`);
     }
 
     async function playVoiceVox(text) {
@@ -1111,10 +1309,16 @@
     }
 
     document.addEventListener('keydown', async e => {
+      // ゲーム画面が表示されている時のみスペースキーの処理を行う
+      if (gameArea.style.display !== 'block') return;
+      
       if (!startTime || isPaused) return;
       
       // スペースキーのみ受け付ける
       if (e.code !== 'Space') return;
+      
+      // スペースキーのデフォルト動作を無効化（ページスクロールなどを防ぐ）
+      e.preventDefault();
       
       const elapsed = performance.now() - startTime;
       let closest = null;
@@ -1159,6 +1363,11 @@
           // Perfect文字エフェクトを追加
           createPerfectTextEffect(closest.char);
           
+          // 判定ライン周辺にもパーティクルエフェクトを追加
+          const judgeLine = document.getElementById('judge-line');
+          const judgeRect = judgeLine.getBoundingClientRect();
+          createParticleEffect(judgeRect.left + judgeRect.width/2, judgeRect.top + judgeRect.height/2);
+          
           // Perfect音声を再生
           playPerfectSound();
         } else {
@@ -1176,6 +1385,11 @@
               addScore = 200;
               break;
           }
+          
+          // Good判定時にも地味なパーティクルエフェクトを追加
+          const judgeLine = document.getElementById('judge-line');
+          const judgeRect = judgeLine.getBoundingClientRect();
+          createGoodParticleEffect(judgeRect.left + judgeRect.width/2, judgeRect.top + judgeRect.height/2);
         }
         closest.hit = true;
         document.querySelectorAll('.note').forEach(div => {
